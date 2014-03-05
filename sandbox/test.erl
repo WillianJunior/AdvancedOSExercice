@@ -9,8 +9,11 @@ makeAndKill () ->
 	io:format("spawned~n"),
 	%exit(Pid1,normal),
 	io:format("msg~n"),
-	Pid1 ! aliveee,
+	%Pid1 ! aliveee,
+	timer:start(),
+	timer:send_after(1000, Pid1, aliveee),
 	io:format("killing~n"),
-	Pid1 ! dieee,
+	%Pid1 ! dieee,
 	io:format("killed~n"),
-	Pid1 ! aliveee.
+	%Pid1 ! aliveee,
+	timer:sleep(4000).
