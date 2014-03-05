@@ -1,10 +1,13 @@
 -module(sensor).
--export([startC/2, startF/2]).
+-export([start/3, startC/2, startF/2]).
+
+start(celsius, PidTempConv, PidDisplay) -> 
+	spawn(?MODULE, startC, [PidTempConv, PidDisplay]);
+start(fahrenheit, PidTempConv, PidDisplay) -> 
+	spawn(?MODULE, startF, [PidTempConv, PidDisplay]).
 
 startC(PidTempConv, PidDisplay) ->
 	receive
-		test ->
-			io:format("test~n");
 		tick ->
 			io:format("requesting temp conversion~n"),
 			PidTempConv ! {convertToCelsius, self(), 1};
@@ -18,7 +21,7 @@ startF(PidTempConv, PidDisplay) ->
 	receive
 		tick ->
 			io:format("requesting temp conversion~n"),
-			PidTempConv ! {convertToFahrenheit, self(), 1};
+			PidTempConv ! {convertToFahrenheit, self(), 2};
 		{convertedFahrenheit, Temp} ->
 			io:format("converted to fahrenheit. sending to be displayed~n"),
 			PidDisplay ! {temperatureFahrenheit, Temp}

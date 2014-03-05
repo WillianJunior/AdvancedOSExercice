@@ -1,11 +1,13 @@
 -module(display).
--export([start/0]).
+-export([start/0, loop/0]).
 
-start() ->
+start() -> spawn(?MODULE, loop, []).
+
+loop() ->
 	receive
 		{temperatureCelsius, Temp} ->
-			io:format("printing temp in celsius~n");
+			io:format("printing temp in celsius: ~w~n", [Temp]);
 		{temperatureFahrenheit, Temp} ->
-			io:format("printing temp in fahrenheit~n")
+			io:format("printing temp in fahrenheit: ~w~n", [Temp])
 	end,
-	start().
+	loop().

@@ -1,9 +1,11 @@
 -module(tempConv).
--export([start/0]).
+-export([start/0, loop/0]).
 
-start() ->
+start() -> spawn(?MODULE, loop, []).
+
+loop() ->
 	receive
-		{convertToCelsius, PidSender, Temp} ->
+		{convertToCelsius, PidSender, Temp} -> 	
 			io:format("converting to celsius~n"),
 			% return temperature to sender
 			PidSender ! {convertedCelsius, Temp};
@@ -12,4 +14,4 @@ start() ->
 			% return temperature to sender
 			PidSender ! {convertedFahrenheit, Temp}
 	end,
-	start().
+	loop().

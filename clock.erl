@@ -1,9 +1,9 @@
 -module(clock).
--export([start/2]).
+-export([start/2, loop/2]).
 
 start(PidSensor1, PidSensor2) ->
 	timer:start(),
-	loop(PidSensor1, PidSensor2).
+	spawn(?MODULE, loop, [PidSensor1, PidSensor2]).
 
 loop(PidSensor1, PidSensor2) ->
 	receive
