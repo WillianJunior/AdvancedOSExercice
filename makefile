@@ -1,19 +1,26 @@
-all: main display clock tempConv sensor
+CFLAGS = -Wall
 
-main: main.erl
-	erlc main.erl
+all: compile run
 
-display: display.erl
-	erlc display.erl
+run:
+	erl -pa ebin
 
-clock: clock.erl
-	erlc clock.erl
+compile: main display clock tempConv sensor
 
-tempConv: tempConv.erl
-	erlc tempConv.erl
+main: src/main.erl
+	erlc $(CFLAGS) -o ebin src/main.erl
 
-sensor: sensor.erl
-	erlc sensor.erl
+display: src/display.erl
+	erlc $(CFLAGS) -o ebin src/display.erl
+
+clock: src/clock.erl
+	erlc $(CFLAGS) -o ebin src/clock.erl
+
+tempConv: src/tempConv.erl
+	erlc $(CFLAGS) -o ebin src/tempConv.erl
+
+sensor: src/sensor.erl
+	erlc $(CFLAGS) -o ebin src/sensor.erl
 
 clean:
-	rm *.beam
+	rm ebin/*

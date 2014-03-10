@@ -6,4 +6,4 @@ start() ->
 	PidDisplay = display:start(),
 	PidSensor1 = sensor:start(celsius, PidTempConv, PidDisplay),
 	PidSensor2 = sensor:start(fahrenheit, PidTempConv, PidDisplay),
-	PidClock = clock:start(PidSensor1, PidSensor2).
+	_PidClock = clock:start(PidSensor1, PidSensor2).
