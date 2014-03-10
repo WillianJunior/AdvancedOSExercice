@@ -1,11 +1,11 @@
 CFLAGS = -Wall
 
-all: compile run
+all: build run
 
 run:
 	erl -pa ebin
 
-compile: main display clock tempConv sensor
+build: main display clock tempConv sensor
 
 main: src/main.erl
 	erlc $(CFLAGS) -o ebin src/main.erl

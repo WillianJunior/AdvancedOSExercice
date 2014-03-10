@@ -1,8 +1,12 @@
 -module(clock).
--export([start/2, loop/2]).
+-export([start/2, startAndLink/2, loop/2]).
 
 start(PidSensor1, PidSensor2) ->
 	spawn(?MODULE, loop, [PidSensor1, PidSensor2]).
+
+startAndLink(PidSensor1, PidSensor2) ->
+	spawn_link(?MODULE, loop, [PidSensor1, PidSensor2]).
+
 
 loop(PidSensor1, PidSensor2) ->
 	receive
