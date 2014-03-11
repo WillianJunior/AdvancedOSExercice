@@ -2,13 +2,13 @@
 -export([start/0]).
 
 start() ->
+	display:start(),
 	tempConv:start(),
 	receive
 	after 1000->
-		tempConv ! {loadNewConvFun, {f1, fun(X) -> X+1 end}},
-		tempConv ! {self(), convert, f1, 1}
+		tempConv:add_new_fun(celsius, fun(X) -> X+1 end),
+		tempConv:add_new_fun(fahrenheit, fun(X) -> X*2 end),
 	end.
-	%display:start(),
 	%sensor:start(fahrenheitSensor),
 	%clock:start(),
 	%sensor:start(celsiusSensor),

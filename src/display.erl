@@ -20,9 +20,7 @@ restarter() ->
 
 loop() ->
 	receive
-		{temperatureCelsius, Temp} ->
-			io:format("printing temp in celsius: ~w~n", [Temp]);
-		{temperatureFahrenheit, Temp} ->
-			io:format("printing temp in fahrenheit: ~w~n", [Temp])
+		{S, Temp} ->
+			io:format("printing temp from sensor ~s: ~w~n", [atom_to_string(S)Temp]);
 	end,
 	loop().
