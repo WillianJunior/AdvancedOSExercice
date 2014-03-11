@@ -1,18 +1,30 @@
 -module(clock).
--export([start/2, startAndLink/2, loop/2]).
+-export([start/0, start_link/0, restarter/0, loop/0]).
 
-start(PidSensor1, PidSensor2) ->
-	spawn(?MODULE, loop, [PidSensor1, PidSensor2]).
+start() ->
+	spawn(?MODULE, restarter, []).
 
-startAndLink(PidSensor1, PidSensor2) ->
-	spawn_link(?MODULE, loop, [PidSensor1, PidSensor2]).
+start_link() ->
+	spawn_link(?MODULE, restarter, []).
 
+restarter() ->
+	process_flag(trap_exit, true),
+	Pid = spawn_link(?MODULE, loop, []),
+	register(clock, Pid),
+	receive
+		{'EXIT', Pid, normal} ->
+			io:format("clock terminated normally~n");
+		{'EXIT', Pid, shutdown} ->
+			io:format("clock manually terminated~n");
+		{'EXIT', Pid, _} ->
+			restarter()
+	end.
 
-loop(PidSensor1, PidSensor2) ->
+loop() ->
 	receive
 	after 5000 ->
 		io:format("tick~n"),
-		PidSensor1 ! tick,
-		PidSensor2 ! tick
+		celsiusSensor ! tick,
+		fahrenheitSensor ! tick
 	end,
-	loop(PidSensor1, PidSensor2).
+	loop().
