@@ -20,7 +20,7 @@ restarter() ->
 
 loop() ->
 	receive
-		{S, Temp} ->
-			io:format("printing temp from sensor ~s: ~w~n", [atom_to_string(S)Temp]);
+		{S, T} ->
+			io:format("printing temp from sensor ~s: ~w~n", [atom_to_list(S), T])
 	end,
 	loop().

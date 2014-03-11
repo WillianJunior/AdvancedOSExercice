@@ -39,7 +39,3 @@ convert_temp(Pid, F, T) ->
 
 add_new_fun(N, F) ->
 	tempConv ! {loadNewConvFun, {N, F}}.
-
-%fun(X) -> X+1 end
-%fun(X) -> X+2 end
-%fun(X) -> X+3 end

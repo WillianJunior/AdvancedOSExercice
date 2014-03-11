@@ -1,52 +1,34 @@
 -module(sensor).
--export([start/1, start_link/1, restarter/1, loop/1]).
+-export([start/2, start_link/2, restarter/2, loop/2]).
 
-start(T) -> 
-	spawn(?MODULE, restarter, [T]).
+start(S, F) -> 
+	spawn(?MODULE, restarter, [S, F]).
 
-start_link(T) ->
-	spawn_link(?MODULE, restarter, [T]).
+start_link(S, F) ->
+	spawn_link(?MODULE, restarter, [S, F]).
 
-restarter(T) ->
+restarter(S, F) ->
 	process_flag(trap_exit, true),
-	Pid = spawn_link(?MODULE, loop, [T]),
-	register(T, Pid),
+	Pid = spawn_link(?MODULE, loop, [S, F]),
+	register(S, Pid),
 	receive
 		{'EXIT', Pid, normal} ->
 			io:format("sensor terminated normally~n");
 		{'EXIT', Pid, shutdown} ->
 			io:format("sensor manually terminated~n");
 		{'EXIT', Pid, _} ->
-			restarter(T)
+			restarter(S, F)
 	end.
 
-loop({S,F}) ->
+loop(S, F) ->
 	receive
 		tick ->
 			io:format("requesting temp conversion~n"),
-			tempConv ! {convertToCelsius, self(), 10};
-		{convertedCelsius, Temp} ->
-			io:format("converted to celsius. sending to be displayed~n"),
-			display ! {temperatureCelsius, Temp}
+			% get a random reading between 1 and 100
+			T = random:uniform(100),
+			tempConv:convert_temp(self(), F, T);
+		{converted, T} ->
+			io:format("converted. sending to be displayed~n"),
+			display ! {S, T}
 	end,
-	loop(celsiusSensor);
-loop(celsiusSensor) ->
-	receive
-		tick ->
-			io:format("requesting temp conversion~n"),
-			tempConv ! {convertToCelsius, self(), 10};
-		{convertedCelsius, Temp} ->
-			io:format("converted to celsius. sending to be displayed~n"),
-			display ! {temperatureCelsius, Temp}
-	end,
-	loop(celsiusSensor);
-loop(fahrenheitSensor) -> 
-	receive
-		tick ->
-			io:format("requesting temp conversion~n"),
-			tempConv ! {convertToFahrenheit, self(), 2};
-		{convertedFahrenheit, Temp} ->
-			io:format("converted to fahrenheit. sending to be displayed~n"),
-			display ! {temperatureFahrenheit, Temp}
-	end,
-	loop(fahrenheitSensor).
+	loop(S, F).

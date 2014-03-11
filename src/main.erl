@@ -4,12 +4,10 @@
 start() ->
 	display:start(),
 	tempConv:start(),
-	receive
-	after 1000->
-		tempConv:add_new_fun(celsius, fun(X) -> X+1 end),
-		tempConv:add_new_fun(fahrenheit, fun(X) -> X*2 end),
-	end.
-	%sensor:start(fahrenheitSensor),
+	sensor:start(fahrenheitSensor, fahrenheit),
+	tempConv:add_new_fun(celsius, fun(X) -> X+1 end),
+	tempConv:add_new_fun(fahrenheit, fun(X) -> X*2 end).
+
 	%clock:start(),
 	%sensor:start(celsiusSensor),
 	%clock:add_new_sensor(celsiusSensor).
