@@ -5,7 +5,7 @@ all: build run
 run:
 	erl -pa ebin
 
-build: main display clock tempConv sensor
+build: main display clock tempConv sensor supervisor
 
 main: src/main.erl
 	erlc $(CFLAGS) -o ebin src/main.erl
@@ -21,6 +21,9 @@ tempConv: src/tempConv.erl
 
 sensor: src/sensor.erl
 	erlc $(CFLAGS) -o ebin src/sensor.erl
+
+supervisor: src/my_supervisor.erl
+	erlc $(CFLAGS) -o ebin src/my_supervisor.erl
 
 clean:
 	rm ebin/*

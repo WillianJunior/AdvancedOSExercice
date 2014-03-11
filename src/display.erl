@@ -1,7 +1,7 @@
 -module(display).
 -export([start/0, start_link/0, restarter/0, loop/0]).
 
-start() -> spawn(?MODULE, loop, []).
+start() -> spawn(?MODULE, restarter, []).
 
 start_link() -> spawn_link(?MODULE, restarter, []).
 

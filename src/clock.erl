@@ -1,5 +1,5 @@
 -module(clock).
--export([start/0, start_link/0, restarter/0, loop/0]).
+-export([start/0, start_link/0, restarter/0, loop/1, add_new_sensor/1]).
 
 start() ->
 	spawn(?MODULE, restarter, []).
@@ -9,7 +9,7 @@ start_link() ->
 
 restarter() ->
 	process_flag(trap_exit, true),
-	Pid = spawn_link(?MODULE, loop, []),
+	Pid = spawn_link(?MODULE, loop, [[]]),
 	register(clock, Pid),
 	receive
 		{'EXIT', Pid, normal} ->
@@ -20,11 +20,20 @@ restarter() ->
 			restarter()
 	end.
 
-loop() ->
+loop(L) ->
 	receive
+		{new_sensor, A} ->
+			loop([A|L])
 	after 5000 ->
 		io:format("tick~n"),
-		celsiusSensor ! tick,
-		fahrenheitSensor ! tick
+		tick_all(L)
 	end,
-	loop().
+	loop(L).
+
+tick_all([H|L]) ->
+	H ! tick,
+	tick_all(L);
+tick_all([]) -> [].
+
+add_new_sensor(S) ->
+	clock ! {new_sensor, S}.
