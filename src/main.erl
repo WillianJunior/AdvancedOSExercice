@@ -4,14 +4,12 @@
 start() ->
 	display:start(),
 	tempConv:start(),
+	clock:start(),
 	sensor:start(fahrenheitSensor, fahrenheit),
 	tempConv:add_new_fun(celsius, fun(X) -> X+1 end),
-	tempConv:add_new_fun(fahrenheit, fun(X) -> X*2 end).
-
-	%clock:start(),
-	%sensor:start(celsiusSensor),
+	tempConv:add_new_fun(fahrenheit, fun(X) -> X*2 end),
 	%clock:add_new_sensor(celsiusSensor).
-	%clock:add_new_sensor(fahrenheitSensor),
+	clock:add_new_sensor(fahrenheitSensor).
 	%supervisor:start(),
 
 	%loop(),
@@ -36,5 +34,3 @@ loop() ->
 		{'EXIT', Pid, _} ->
 			loop()
 	end.
-
-loadNewFun(A, F) -> A ! {loadNewConvFun, F}.
