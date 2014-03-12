@@ -10,17 +10,18 @@ restarter() ->
 	Pid = spawn_link(?MODULE, loop, []),
 	register(display, Pid),
 	receive
-		{'EXIT', Pid, normal} ->
-			io:format("display terminated normally~n");
-		{'EXIT', Pid, shutdown} ->
-			io:format("display manually terminated~n");
-		{'EXIT', Pid, _} ->
+		{'EXIT', _Pid, normal} ->
+			io:format("[display] terminated normally~n");
+		{'EXIT', _Pid, shutdown} ->
+			io:format("[display] manually terminated~n");
+		{'EXIT', _Pid, _} ->
+			io:format("[display] something went wrong, so I'll just restart~n"),
 			restarter()
 	end.
 
 loop() ->
 	receive
 		{S, T} ->
-			io:format("printing temp from sensor ~s: ~w~n", [atom_to_list(S), T])
+			io:format("[display] temp from sensor ~s: ~w~n", [atom_to_list(S), T])
 	end,
 	loop().

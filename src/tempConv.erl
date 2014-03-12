@@ -10,11 +10,12 @@ restarter() ->
 	Pid = spawn_link(?MODULE, loop, [[]]),
 	register(tempConv, Pid),
 	receive
-		{'EXIT', Pid, normal} ->
-			io:format("temperature converter terminated normally~n");
-		{'EXIT', Pid, shutdown} ->
-			io:format("temperature converter manually terminated~n");
-		{'EXIT', Pid, _} ->
+		{'EXIT', _Pid, normal} ->
+			io:format("[converter] terminated normally~n");
+		{'EXIT', _Pid, shutdown} ->
+			io:format("[converter] manually terminated~n");
+		{'EXIT', _Pid, _} ->
+			io:format("[converter] something went wrong, so I'll just restart~n"),
 			restarter()
 	end.
 
@@ -23,7 +24,7 @@ loop(Fs) ->
 		{PidSender, convert, F, T} -> 	
 			NewTFun = get_fun(Fs, F),
 			NewT = NewTFun(T),
-			io:format("converting: ~s~n", [atom_to_list(F)]),
+			io:format("[converter] converting: ~s~n", [atom_to_list(F)]),
 			PidSender ! {converted, NewT},
 			loop(Fs);
 		{loadNewConvFun, F} ->

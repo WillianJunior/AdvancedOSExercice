@@ -12,23 +12,24 @@ restarter(S, F) ->
 	Pid = spawn_link(?MODULE, loop, [S, F]),
 	register(S, Pid),
 	receive
-		{'EXIT', Pid, normal} ->
-			io:format("sensor terminated normally~n");
-		{'EXIT', Pid, shutdown} ->
-			io:format("sensor manually terminated~n");
-		{'EXIT', Pid, _} ->
+		{'EXIT', _Pid, normal} ->
+			io:format("[sensor ~s] terminated normally~n", [atom_to_list(S)]);
+		{'EXIT', _Pid, shutdown} ->
+			io:format("[sensor ~s] manually terminated~n", [atom_to_list(S)]);
+		{'EXIT', _Pid, _} ->
+			io:format("[sensor ~s] something went wrong, so I'll just restart~n", [atom_to_list(S)]),
 			restarter(S, F)
 	end.
 
 loop(S, F) ->
 	receive
 		tick ->
-			io:format("requesting temp conversion~n"),
+			io:format("[sensor ~s] requesting temp conversion~n", [atom_to_list(S)]),
 			% get a random reading between 1 and 100
 			T = random:uniform(100),
 			tempConv:convert_temp(self(), F, T);
 		{converted, T} ->
-			io:format("converted. sending to be displayed~n"),
+			io:format("[sensor ~s] temp converted. sending to be displayed~n", [atom_to_list(S)]),
 			display ! {S, T}
 	end,
 	loop(S, F).

@@ -12,11 +12,12 @@ restarter() ->
 	Pid = spawn_link(?MODULE, loop, [[]]),
 	register(clock, Pid),
 	receive
-		{'EXIT', Pid, normal} ->
-			io:format("clock terminated normally~n");
-		{'EXIT', Pid, shutdown} ->
-			io:format("clock manually terminated~n");
-		{'EXIT', Pid, _} ->
+		{'EXIT', _Pid, normal} ->
+			io:format("[clock] terminated normally~n");
+		{'EXIT', _Pid, shutdown} ->
+			io:format("[clock] manually terminated~n");
+		{'EXIT', _Pid, _} ->
+			io:format("[clock] something went wrong, so I'll just restart~n"),
 			restarter()
 	end.
 
@@ -25,14 +26,17 @@ loop(L) ->
 		{new_sensor, A} ->
 			loop([A|L])
 	after 5000 ->
-		io:format("tick~n"),
-		tick_all(L)
-	end,
-	loop(L).
+		io:format("[clock] tick~n"),
+		NL = tick_all(L),
+		loop(NL)
+	end.
 
 tick_all([H|L]) ->
-	H ! tick,
-	tick_all(L);
+	Pid = whereis(H),
+	if 
+		Pid =:= undefined -> tick_all(L);
+		true -> Pid ! tick, [H|tick_all(L)]
+	end;
 tick_all([]) -> [].
 
 add_new_sensor(S) ->
