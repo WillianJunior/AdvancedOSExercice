@@ -1,10 +1,11 @@
 -module(display).
--export([start/0, start_link/0, restarter/0, loop/0]).
+-export([start/0, restarter/0, loop/0]).
 
+% display spawner
 start() -> spawn(?MODULE, restarter, []).
 
-start_link() -> spawn_link(?MODULE, restarter, []).
-
+% the restarter makes sure that except when we explicitly
+% killed the process, it will restart itself
 restarter() ->
 	process_flag(trap_exit, true),
 	Pid = spawn_link(?MODULE, loop, []),
@@ -15,13 +16,18 @@ restarter() ->
 		{'EXIT', _Pid, shutdown} ->
 			io:format("[display] manually terminated~n");
 		{'EXIT', _Pid, _} ->
-			io:format("[display] something went wrong, so I'll just restart~n"),
+			io:format("[display] something went wrong, 
+				so I'll just restart~n"),
 			restarter()
 	end.
 
+% main loop:
+% responsable for receiving the temperature messages and 
+% displaying them.
 loop() ->
 	receive
 		{S, T} ->
-			io:format("[display] temp from sensor ~s: ~w~n", [atom_to_list(S), T])
+			io:format("[display] temp from sensor 
+				~s: ~w~n", [atom_to_list(S), T])
 	end,
 	loop().

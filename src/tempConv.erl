@@ -1,10 +1,12 @@
 -module(tempConv).
--export([start/0, start_link/0, restarter/0, loop/1, convert_temp/3, add_new_fun/2]).
+-export([start/0, restarter/0, loop/1, 
+	convert_temp/3, add_new_fun/2]).
 
+% converter spawner
 start() -> spawn(?MODULE, restarter, []).
 
-start_link() -> spawn_link(?MODULE, restarter, []).
-
+% the restarter makes sure that except when we explicitly
+% killed the process, it will restart itself
 restarter() ->
 	process_flag(trap_exit, true),
 	Pid = spawn_link(?MODULE, loop, [[]]),
@@ -15,28 +17,40 @@ restarter() ->
 		{'EXIT', _Pid, shutdown} ->
 			io:format("[converter] manually terminated~n");
 		{'EXIT', _Pid, _} ->
-			io:format("[converter] something went wrong, so I'll just restart~n"),
+			io:format("[converter] something went wrong, 
+				so I'll just restart~n"),
 			restarter()
 	end.
 
+% main loop:
+% responsable for receiving convert requests and responding
+% with the converted temperature given the requested function,
+% (that is inside its function list 'Fs'),
+% can also receive new functions and add them to 'Fs'
 loop(Fs) ->
 	receive
 		{PidSender, convert, F, T} -> 	
 			NewTFun = get_fun(Fs, F),
 			NewT = NewTFun(T),
-			io:format("[converter] converting: ~s~n", [atom_to_list(F)]),
+			io:format("[converter] converting: 
+				~s~n", [atom_to_list(F)]),
 			PidSender ! {converted, NewT},
 			loop(Fs);
 		{loadNewConvFun, F} ->
 			loop([F|Fs])
 	end.
 
+% return the function mached by its atom name 'F'
 get_fun([{_F, Fun}|_], _F) -> Fun;
 get_fun([{_, _}|Fs], F) -> get_fun(Fs, F);
 get_fun([], _) -> [].
 
+% encapsulated message to convert the temperature 'T' 
+% using function 'F' and return the result to process 'Pid'
 convert_temp(Pid, F, T) ->
 	tempConv ! {Pid, convert, F, T}.
 
+% encapsulated message to add a new function 'F' with 
+% the atom name 'N'
 add_new_fun(N, F) ->
 	tempConv ! {loadNewConvFun, {N, F}}.
