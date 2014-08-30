@@ -38,6 +38,6 @@ tick_all([H|L]) ->
 	Pid = whereis(H),
 	if 
 		Pid =:= undefined -> tick_all(L);
-		true -> Pid ! tick, [H|tick_all(L)]
+		true -> Pid ! tick, [H|tick_all(L)] %% change here!! abstract pinging
 	end;
 tick_all([]) -> [].

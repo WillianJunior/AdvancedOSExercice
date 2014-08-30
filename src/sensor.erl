@@ -1,5 +1,44 @@
 -module(sensor).
--export([start/2, restarter/2, loop/2]).
+-behaviour (gen_server).
+%-export([start/2, restarter/2, loop/2]).
+-export([start_link/2]).
+-export([request_reading/1]).
+-export([init/1, handle_cast/2]).
+
+
+%%% Client API
+start_link(Sensor_Ref, Function_Ref) ->
+	 gen_server:start_link({local, Sensor_Ref}, sensor, [Sensor_Ref, Function_Ref], []).
+
+%% Async call
+request_reading(Sensor_Ref) ->
+	io:format("casting~n"),
+	gen_server:cast(Sensor_Ref, request_reading).
+
+%%% Server Functions
+init([Sensor_Ref, Function_Ref]) ->
+	{ok, [Sensor_Ref, Function_Ref]}.
+
+handle_cast(request_reading, [Sensor_Ref, Function_Ref]) ->
+	io:format("[sensor ~s] requesting temp 
+		conversion~n", [atom_to_list(Sensor_Ref)]),
+	% get a random reading between 1 and 100
+	T = random:uniform(100),
+	tempConv:convert_temp(self(), Function_Ref, T),
+	{noreply, [Sensor_Ref, Function_Ref]};
+handle_cast({converted, T}, [Sensor_Ref, Function_Ref]) ->
+	io:format("[sensor ~s] temp converted. 
+		sending to be displayed~n", [atom_to_list(Sensor_Ref)]),
+	display ! {Sensor_Ref, T},
+	{noreply, [Sensor_Ref, Function_Ref]}.
+
+
+
+
+
+
+
+
 
 % sensor spawner
 start(S, F) -> 
