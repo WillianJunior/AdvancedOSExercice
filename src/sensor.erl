@@ -24,12 +24,10 @@ handle_cast(request_reading, [Sensor_Ref, Function_Ref]) ->
 		conversion~n", [atom_to_list(Sensor_Ref)]),
 	% get a random reading between 1 and 100
 	T = random:uniform(100),
-	tempConv:convert_temp(self(), Function_Ref, T),
-	{noreply, [Sensor_Ref, Function_Ref]};
-handle_cast({converted, T}, [Sensor_Ref, Function_Ref]) ->
+	T_New = tempConv:request_conversion(self(), Function_Ref, T),
 	io:format("[sensor ~s] temp converted. 
 		sending to be displayed~n", [atom_to_list(Sensor_Ref)]),
-	display ! {Sensor_Ref, T},
+	display ! {Sensor_Ref, T_New},
 	{noreply, [Sensor_Ref, Function_Ref]}.
 
 

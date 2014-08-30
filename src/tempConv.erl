@@ -1,6 +1,45 @@
 -module(tempConv).
--export([start/0, restarter/0, loop/1, 
-	convert_temp/3, add_new_fun/2]).
+-behaviour (gen_server).
+%-export([start/0, restarter/0, loop/1, convert_temp/3, add_new_fun/2]).
+-export([start_link/0]).
+-export([request_conversion/2, add_new_fun/2]).
+-export([init/1, handle_call/3, handle_cast/2]).
+
+%%% Client API
+start_link() ->
+	gen_server:start_link({local, tempConv}, tempConv, [], []).
+
+%% Sync Call
+request_conversion(Function, Temp) ->
+	gen_server:call(tempConv, {request_conversion, Function, Temp}).
+
+%% Async Call
+add_new_fun(Function_Ref, Function) ->
+	gen_server:cast(tempConv, {add_new_fun, Function_Ref, Function}).
+
+%%% Server Functions
+init(_Args) ->
+	{ok, []}.
+
+handle_call({request_conversion, Function, Temp}, _From, Functions) ->
+	io:format("here"),
+	New_T_Fun = get_fun(Functions, Function),
+	New_T = New_T_Fun(Temp),
+	io:format("[converter] converting: 
+		~s~n", [atom_to_list(Function)]),
+	{reply, New_T, Functions}.
+
+handle_cast({add_new_fun, Function_Ref, Function}, Functions) ->
+	{noreply, [{Function_Ref, Function}|Functions]}.
+
+
+
+
+
+
+
+
+
 
 % converter spawner
 start() -> spawn(?MODULE, restarter, []).
@@ -52,5 +91,5 @@ convert_temp(Pid, F, T) ->
 
 % encapsulated message to add a new function 'F' with 
 % the atom name 'N'
-add_new_fun(N, F) ->
-	tempConv ! {loadNewConvFun, {N, F}}.
+%add_new_fun(N, F) ->
+%	tempConv ! {loadNewConvFun, {N, F}}.
