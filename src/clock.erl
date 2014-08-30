@@ -1,41 +1,34 @@
 -module(clock).
--export([start/0, restarter/0, loop/1, add_new_sensor/1]).
--define (CLOCK_PERIOD_MS, 1000).
+-behaviour (gen_fsm).
 
-% clock spawner
-start() ->
-	spawn(?MODULE, restarter, []).
+-define (CLOCK_PERIOD_MS, 3000).
 
-% the restarter makes sure that except when we explicitly
-% killed the process, it will restart itself
-restarter() ->
-	process_flag(trap_exit, true),
-	Pid = spawn_link(?MODULE, loop, [[]]),
-	register(clock, Pid),
-	receive
-		{'EXIT', _Pid, normal} ->
-			io:format("[clock] terminated normally~n");
-		{'EXIT', _Pid, shutdown} ->
-			io:format("[clock] manually terminated~n");
-		{'EXIT', _Pid, _} ->
-			io:format("[clock] something went wrong, 
-				so I'll just restart~n"),
-			restarter()
-	end.
+-export([start_link/0]).
+-export([add_new_sensor/1]).
+-export([init/1, main_state/2]).
 
-% main loop:
-% responsable for calling all sensors to send their 
-% readings every CLOCK_PERIOD_MS ms,
-% also receives new sensors and add them to the 
-% sensor list 'L'
-loop(L) ->
-	receive
-		{new_sensor, A} ->
-			loop([A|L])
-	after ?CLOCK_PERIOD_MS ->
-		io:format("[clock] tick~n"),
-		NL = tick_all(L),
-		loop(NL)
+%% Client API
+start_link() ->
+	gen_fsm:start_link({local, clock}, clock, [], []).
+
+%%% Server Functions
+init(_Arg) ->
+	gen_fsm:start_timer(?CLOCK_PERIOD_MS, []),
+	{ok, main_state, []}.
+
+%% Async call
+add_new_sensor(Sensor) ->
+	gen_fsm:send_event(clock, {new_sensor, Sensor}).
+
+%% States
+main_state(Event, Sensors) ->
+	case Event of
+		{new_sensor, Sensor} ->
+			{next_state, main_state, [Sensor|Sensors]};
+		{timeout, _Ref, _Msg} ->
+			tick_all(Sensors),
+			gen_fsm:start_timer(?CLOCK_PERIOD_MS, []),
+			{next_state, main_state, Sensors}
 	end.
 
 % send a 'tick' message to all processes in the inpu list,
@@ -48,7 +41,3 @@ tick_all([H|L]) ->
 		true -> Pid ! tick, [H|tick_all(L)]
 	end;
 tick_all([]) -> [].
-
-% encapsulated message to add a new sensor 'S'
-add_new_sensor(S) ->
-	clock ! {new_sensor, S}.

@@ -5,7 +5,7 @@ start() ->
 	% start all processes
 	display:start(),
 	tempConv:start(),
-	clock:start(),
+	clock:start_link(),
 	sensor:start(celsiusSensor, fahrenheit2celsius),
 	sensor:start(fahrenheitSensor, celsius2fahrenheit),
 
