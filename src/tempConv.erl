@@ -22,7 +22,6 @@ init(_Args) ->
 	{ok, []}.
 
 handle_call({request_conversion, Function, Temp}, _From, Functions) ->
-	io:format("here"),
 	New_T_Fun = get_fun(Functions, Function),
 	New_T = New_T_Fun(Temp),
 	io:format("[converter] converting: 

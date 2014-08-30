@@ -4,10 +4,10 @@
 start() ->
 	% start all processes
 	display:start(),
-	tempConv:start(),
+	tempConv:start_link(),
 	clock:start_link(),
-	sensor:start(celsiusSensor, fahrenheit2celsius),
-	sensor:start(fahrenheitSensor, celsius2fahrenheit),
+	sensor:start_link(celsiusSensor, fahrenheit2celsius),
+	sensor:start_link(fahrenheitSensor, celsius2fahrenheit),
 
 	% add the functions and sensors
 	tempConv:add_new_fun(fahrenheit2celsius, fun(X) -> (X-32)*5/9 end),

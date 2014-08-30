@@ -12,7 +12,6 @@ start_link(Sensor_Ref, Function_Ref) ->
 
 %% Async call
 request_reading(Sensor_Ref) ->
-	io:format("casting~n"),
 	gen_server:cast(Sensor_Ref, request_reading).
 
 %%% Server Functions
@@ -24,7 +23,7 @@ handle_cast(request_reading, [Sensor_Ref, Function_Ref]) ->
 		conversion~n", [atom_to_list(Sensor_Ref)]),
 	% get a random reading between 1 and 100
 	T = random:uniform(100),
-	T_New = tempConv:request_conversion(self(), Function_Ref, T),
+	T_New = tempConv:request_conversion(Function_Ref, T),
 	io:format("[sensor ~s] temp converted. 
 		sending to be displayed~n", [atom_to_list(Sensor_Ref)]),
 	display ! {Sensor_Ref, T_New},
