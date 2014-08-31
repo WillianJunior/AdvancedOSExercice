@@ -1,33 +1,36 @@
 -module(display).
--export([start/0, restarter/0, loop/0]).
+-behaviour (gen_event).
 
-% display spawner
-start() -> spawn(?MODULE, restarter, []).
+%-export([start/0, restarter/0, loop/0]).
+-export([start_link/0]).
+-export([init/1, handle_event/2, code_change/3, 
+	handle_call/2, handle_info/2, terminate/2]).
 
-% the restarter makes sure that except when we explicitly
-% killed the process, it will restart itself
-restarter() ->
-	process_flag(trap_exit, true),
-	Pid = spawn_link(?MODULE, loop, []),
-	register(display, Pid),
-	receive
-		{'EXIT', _Pid, normal} ->
-			io:format("[display] terminated normally~n");
-		{'EXIT', _Pid, shutdown} ->
-			io:format("[display] manually terminated~n");
-		{'EXIT', _Pid, _} ->
-			io:format("[display] something went wrong, 
-				so I'll just restart~n"),
-			restarter()
-	end.
+%%% Client API
+start_link() ->
+	gen_event:start_link({local,output_man}),
+	gen_event:add_handler(output_man, display, []).
 
-% main loop:
-% responsable for receiving the temperature messages and 
-% displaying them.
-loop() ->
-	receive
-		{S, T} ->
-			io:format("[display] temp from sensor 
-				~s: ~w~n", [atom_to_list(S), T])
-	end,
-	loop().
+%%% Server Functions
+init(_Args) -> 
+	{ok, []}.
+
+handle_event({temp_reading, Sensor, Temp}, []) ->
+	io:format("[display] temp from sensor 
+				~s: ~w~n", [atom_to_list(Sensor), Temp]),
+	{ok, []}.
+
+code_change(_OldVsn, State, _Extra) ->
+	{ok, State}.
+
+% make it send to an error handler later...
+handle_call(_Request, State) ->
+	{ok, cant_handle, State}.
+
+% make it send to an error handler later...
+handle_info(_Info, State) ->
+	{ok, State}.
+
+% send terminate data to a logger later...
+terminate(_Args, _State) ->
+	io:format("[display] bye.").
